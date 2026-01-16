@@ -8,7 +8,6 @@ PoseLandmarker = mp.tasks.vision.PoseLandmarker
 PoseLandmarkerOptions = mp.tasks.vision.PoseLandmarkerOptions
 VisionRunningMode = mp.tasks.vision.RunningMode
 
-# Standard pose connections (33 landmarks)
 POSE_CONNECTIONS = [
     (0, 1), (1, 2), (2, 3), (0, 4), (4, 5), (5, 6),
     (9, 10), (11, 12), (11, 13), (12, 14), (13, 15), (15, 21), (15, 17), (15, 19), (16, 22), (16, 20),
@@ -25,7 +24,6 @@ def draw_pose_landmarks(image, landmarks, connections=POSE_CONNECTIONS):
         cv2.circle(image, (x, y), 8, (0, 255, 0), -1)
         cv2.circle(image, (x, y), 8, (0, 0, 0), 2)
     
-    # Draw connections
     for start, end in connections:
         start_pos = (int(landmarks[start].x * w), int(landmarks[start].y * h))
         end_pos = (int(landmarks[end].x * w), int(landmarks[end].y * h))
@@ -62,7 +60,7 @@ with PoseLandmarker.create_from_options(options) as landmarker:
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
         
         results = landmarker.detect_for_video(mp_image, frame_timestamp_ms)
-        frame_timestamp_ms += 16  # ~30fps
+        frame_timestamp_ms += 33  # for 30fps
         
         if results.pose_landmarks:
             frame = draw_pose_landmarks(frame, results.pose_landmarks[0])

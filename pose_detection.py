@@ -31,50 +31,63 @@ def draw_pose_landmarks(image, landmarks, connections=POSE_CONNECTIONS):
     
     return image
 
-model_path = 'pose_landmarker_lite.task'
+def create_landmarker(model_path='pose_landmarker_lite.task'):
+    options = PoseLandmarkerOptions(
+        base_options=BaseOptions(model_asset_path=model_path),
+        running_mode=VisionRunningMode.VIDEO,
+        num_poses=1,
+        min_pose_detection_confidence=0.8,
+        min_pose_presence_confidence=0.8,
+        min_tracking_confidence=0.8)
+    return PoseLandmarker.create_from_options(options)
 
-options = PoseLandmarkerOptions(
-    base_options=BaseOptions(model_asset_path=model_path),
-    running_mode=VisionRunningMode.VIDEO,
-    num_poses=1,
-    min_pose_detection_confidence=0.8,
-    min_pose_presence_confidence=0.8,
-    min_tracking_confidence=0.8)
+def main():
+    model_path = 'pose_landmarker_lite.task'
 
-# Initialize webcam
-cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-fps_time = 0
+    options = PoseLandmarkerOptions(
+        base_options=BaseOptions(model_asset_path=model_path),
+        running_mode=VisionRunningMode.VIDEO,
+        num_poses=1,
+        min_pose_detection_confidence=0.8,
+        min_pose_presence_confidence=0.8,
+        min_tracking_confidence=0.8)
 
-with PoseLandmarker.create_from_options(options) as landmarker:
-    frame_timestamp_ms = 0
-    
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            break
+    # Initialize webcam
+    cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    fps_time = 0
+
+    with PoseLandmarker.create_from_options(options) as landmarker:
+        frame_timestamp_ms = 0
+        
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break
+                
+            frame = cv2.flip(frame, 1)
+            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
             
-        frame = cv2.flip(frame, 1)
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
-        
-        results = landmarker.detect_for_video(mp_image, frame_timestamp_ms)
-        frame_timestamp_ms += 33  # for 30fps
-        
-        if results.pose_landmarks:
-            frame = draw_pose_landmarks(frame, results.pose_landmarks[0])
-        
-        fps_time += 1
-        if fps_time % 30 == 0:
+            results = landmarker.detect_for_video(mp_image, frame_timestamp_ms)
+            frame_timestamp_ms += 33  # for 30fps
+            
+            if results.pose_landmarks:
+                frame = draw_pose_landmarks(frame, results.pose_landmarks[0])
+            
+            fps_time += 1
             fps = cap.get(cv2.CAP_PROP_FPS)
             cv2.putText(frame, f'FPS: {int(fps)}', (10, 30), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-        
-        cv2.imshow('MediaPipe Webcam Pose', frame)
-        
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+            
+            cv2.imshow('MediaPipe Webcam Pose', frame)
+            
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
 
-cap.release()
-cv2.destroyAllWindows()
+    cap.release()
+    cv2.destroyAllWindows()
+
+if __name__ == "__main__":
+    main()

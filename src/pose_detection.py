@@ -31,7 +31,7 @@ def draw_pose_landmarks(image, landmarks, connections=POSE_CONNECTIONS):
     
     return image
 
-def create_landmarker(model_path='pose_landmarker_lite.task'):
+def create_landmarker(model_path='../models/pose_landmarker_lite.task'):
     options = PoseLandmarkerOptions(
         base_options=BaseOptions(model_asset_path=model_path),
         running_mode=VisionRunningMode.VIDEO,

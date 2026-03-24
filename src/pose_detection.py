@@ -1,7 +1,5 @@
 import cv2
 import mediapipe as mp
-import numpy as np
-
 
 BaseOptions = mp.tasks.BaseOptions
 PoseLandmarker = mp.tasks.vision.PoseLandmarker

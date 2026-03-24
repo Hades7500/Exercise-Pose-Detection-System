@@ -9,11 +9,10 @@ PoseLandmarkerOptions = mp.tasks.vision.PoseLandmarkerOptions
 VisionRunningMode = mp.tasks.vision.RunningMode
 
 POSE_CONNECTIONS = [
-    (0, 1), (1, 2), (2, 3), (0, 4), (4, 5), (5, 6),
-    (9, 10), (11, 12), (11, 13), (12, 14), (13, 15), (15, 21), (15, 17), (15, 19), (16, 22), (16, 20),
+    (11, 12), (11, 13), (12, 14), (13, 15), (15, 21), (15, 17), (15, 19), (16, 22), (16, 20),
     (14, 16), (16, 18), (11, 23), (12, 24), (23, 24),
-    (23, 25), (24, 26), (25, 27), (26, 28), (27, 29),
-    (27, 31), (28, 30), (28, 31)
+    (23, 25), (24, 26), (25, 27), (26, 28),
+    (27, 31), (28, 31)
 ]
 
 def draw_pose_landmarks(image, landmarks, connections=POSE_CONNECTIONS):

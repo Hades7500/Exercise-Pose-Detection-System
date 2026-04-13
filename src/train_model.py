@@ -1,17 +1,3 @@
-"""
-train_model.py — Train form-error classifiers from landmarks.csv
-=================================================================
-Run this ONCE after extract_landmarks.py has produced landmarks.csv.
-Outputs three model files: models/bicep.pkl, models/squat.pkl, models/pushup.pkl
-
-Usage:
-    python train_model.py
-    python train_model.py --csv landmarks.csv --output_dir models/
-
-Requirements:
-    pip install scikit-learn pandas numpy matplotlib seaborn
-"""
-
 import os
 import argparse
 import numpy as np
@@ -62,10 +48,6 @@ EXERCISES = ["squat", "pushup"]
 # ─────────────────────────────────────────────
 
 def balance_classes(df: pd.DataFrame, label_col: str = "form_label") -> pd.DataFrame:
-    """
-    Upsample minority classes to match the majority class.
-    This prevents the model from ignoring rare error types.
-    """
     majority_size = df[label_col].value_counts().max()
     balanced_parts = []
     for label, group in df.groupby(label_col):
@@ -79,13 +61,10 @@ def balance_classes(df: pd.DataFrame, label_col: str = "form_label") -> pd.DataF
 
 
 def get_available_features(df: pd.DataFrame) -> list:
-    """Return only features that exist in this dataframe."""
     return [f for f in ALL_FEATURES if f in df.columns]
 
 
 def train_single_model(df: pd.DataFrame, exercise: str, output_dir: str):
-    """Train and save a classifier for one exercise."""
-
     print(f"\n{'='*55}")
     print(f"  Training: {exercise.upper()}")
     print(f"{'='*55}")

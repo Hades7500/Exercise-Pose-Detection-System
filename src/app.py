@@ -6,13 +6,9 @@ from PIL import Image
 import mediapipe as mp
 import base64
 
-# Import your existing pose detection code
 from pose_detection import create_landmarker, draw_pose_landmarks, POSE_CONNECTIONS, pose_result_store
-
-# ── COACH IMPORTS (new) ───────────────────────────────────────────────────────
 from form_coach import FormCoach
 from coach_ui import draw_coach_overlay
-# ─────────────────────────────────────────────────────────────────────────────
 
 def get_landmark_name(idx):
     names = {
@@ -25,13 +21,11 @@ def get_landmark_name(idx):
     }
     return names.get(idx, f"landmark_{idx}")
 
-# Page configuration
 st.set_page_config(
     page_title="Exercise Coach",
     layout="wide"
 )
 
-# Initialize session state
 if 'running' not in st.session_state:
     st.session_state.running = False
 if 'frame_count' not in st.session_state:
@@ -44,7 +38,6 @@ if 'show_all_state' not in st.session_state:
     st.session_state.show_all_state = False
 
 
-# ── COACH SESSION STATE (new) ─────────────────────────────────────────────────
 if 'selected_exercise' not in st.session_state:
     st.session_state.selected_exercise = "pushup"
 if 'coach' not in st.session_state:
@@ -54,7 +47,6 @@ if 'coach' not in st.session_state:
     )
 if 'coach_result' not in st.session_state:
     st.session_state.coach_result = None
-# ─────────────────────────────────────────────────────────────────────────────
 
 # Title
 st.title("Real-Time Pose Detection")
@@ -62,7 +54,6 @@ st.title("Real-Time Pose Detection")
 st.session_state.running = True
 video_width = 700
 
-# ── EXERCISE SELECTOR (new) ───────────────────────────────────────────────────
 col_ex1, col_ex2, col_reset = st.columns([1, 1, 1])
 with col_ex1:
     if st.button("Squat"):
@@ -77,7 +68,6 @@ with col_reset:
         st.session_state.coach.reset_reps()
 
 st.caption(f"Active exercise: **{st.session_state.selected_exercise.replace('_', ' ').title()}**")
-# ─────────────────────────────────────────────────────────────────────────────
 
 # Main content area
 col1, col2 = st.columns([2, 1])
@@ -104,29 +94,13 @@ with col2:
     st.subheader("Detected Landmarks")
     
     # Tabs for different views
-    tab1, tab2, tab3, tab4 = st.tabs(["Coach", "Key Points", "Raw Data", "Connections"])
+    tab1, tab2 = st.tabs(["Coach", "Key Points"])
     
     with tab1:
         coach_placeholder = st.empty()
 
     with tab2:
         keypoints_placeholder = st.empty()
-    
-    with tab3:
-        raw_data_placeholder = st.empty()
-        show_all_landmarks = st.checkbox(
-            "Show All 33 Landmarks", 
-            value=st.session_state.show_all_state,
-            key="show_all_main",
-            on_change=lambda: setattr(st.session_state, 'show_all_state', 
-                                     not st.session_state.show_all_state)
-        )
-    
-    with tab4:
-        connections_placeholder = st.dataframe(
-            pd.DataFrame(POSE_CONNECTIONS, columns=["Start", "End"]),
-            width='stretch'
-        )
 
 # Initialize camera
 if st.session_state.running:
@@ -165,7 +139,6 @@ if st.session_state.running:
                 
                 display_frame = draw_pose_landmarks(display_frame, landmarks)
 
-                # ── COACH UPDATE (new) ────────────────────────────────────────
                 coach_result = st.session_state.coach.update(landmarks)
                 st.session_state.coach_result = coach_result
                 cr = st.session_state.coach_result
@@ -176,10 +149,8 @@ if st.session_state.running:
                             <div style="font-size:13px;color:gray;margin-bottom:4px">{cr['exercise'].replace('_',' ').title()}</div>
                             <div style="font-size:28px;font-weight:600">{cr['reps']} reps</div>
                             <div style="font-size:15px;margin-top:8px">{cr['advice']}</div>
-                            <div style="font-size:11px;color:gray;margin-top:6px">Confidence: {cr['confidence']:.0%}</div>
                         </div>
                         """, unsafe_allow_html=True)
-                # ─────────────────────────────────────────────────────────────
                 
                 key_joints = [11, 12, 13, 14, 15, 16, 23, 24, 25, 26]
                 for idx in key_joints:
@@ -225,12 +196,6 @@ if st.session_state.running:
                         "Z": f"{lm.z:.3f}",
                         "Visibility": f"{lm.visibility:.2f}"
                     })
-                raw_data_placeholder.dataframe(
-                    pd.DataFrame(all_data),
-                    width='stretch'
-                )
-            else:
-                raw_data_placeholder.empty()
             
             if screenshot_btn:
                 screenshot = Image.fromarray(display_frame_rgb)
@@ -247,11 +212,9 @@ if st.session_state.running:
     
     finally:
         cap.release()
-
 else:
     video_placeholder.info("Click 'Start Camera' in the sidebar to begin")
     keypoints_placeholder.info("Landmark data will appear here")
-    raw_data_placeholder.info("Raw data will appear here when 'Show All 33 Landmarks' is checked")
 
 # Footer
 st.markdown("---")

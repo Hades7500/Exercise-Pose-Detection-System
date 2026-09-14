@@ -3,7 +3,7 @@ Step 1 — Extract MediaPipe Landmarks from Exercise Videos
 ==========================================================
 Uses the NEW MediaPipe Tasks API (PoseLandmarker) matching pose_detection.py.
 Processes bicep curl, squat, and pushup videos from the Kaggle dataset,
-extracts landmarks + joint angles per frame, saves to landmarks.csv.
+extracts landmarks + joint angles at approximately 30 FPS, saves to landmarks.csv.
 
 Usage:
     python extract_landmarks.py --dataset_path "path/to/your/dataset"
@@ -120,7 +120,7 @@ def apply_form_labels(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def process_dataset(dataset_path: str,
-                    model_path:   str = "./models/pose_landmarker_lite.task",
+                    model_path:   str = "../models/pose_landmarker_lite.task",
                     output_csv:   str = "landmarks.csv"):
 
     all_rows, video_count, skipped = [], 0, 0
@@ -149,7 +149,7 @@ def process_dataset(dataset_path: str,
     print(f"\n▶️  Processing {len(matched_folders)} folders...\n")
 
     # IMAGE mode: processes each frame independently — no timestamp needed,
-    # works cleanly with frame-skipping during offline extraction.
+    # works cleanly with frame-skipping during offline extraction at the target FPS.
     options = PoseLandmarkerOptions(
         base_options=BaseOptions(model_asset_path=model_path),
         running_mode=VisionRunningMode.IMAGE,
@@ -172,29 +172,43 @@ def process_dataset(dataset_path: str,
                     skipped += 1
                     continue
 
-                fps          = cap.get(cv2.CAP_PROP_FPS) or 30
-                frame_idx    = 0
-                sample_every = max(1, int(fps / 10))
+                fps = cap.get(cv2.CAP_PROP_FPS) or 30
+                frame_idx = 0
+
+                # Extract at approximately 30 FPS.
+                #
+                # - 30 FPS source -> every frame
+                # - 60 FPS source -> every 2nd frame
+                # - 120 FPS source -> every 4th frame
+                # - <30 FPS source -> every available frame (we cannot create
+                #   genuine new frames without interpolation).
+                TARGET_FPS = 30.0
+                sample_every = max(1, int(round(fps / TARGET_FPS)))
 
                 while cap.isOpened():
                     ret, frame = cap.read()
                     if not ret:
                         break
+
                     frame_idx += 1
+
                     if frame_idx % sample_every != 0:
                         continue
 
-                    rgb      = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
-                    result   = landmarker.detect(mp_image)
+                    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    mp_image = mp.Image(
+                        image_format=mp.ImageFormat.SRGB,
+                        data=rgb
+                    )
+                    result = landmarker.detect(mp_image)
 
                     if not result.pose_landmarks:
                         continue
 
                     row = extract_features(result.pose_landmarks[0])
-                    row["exercise"]   = exercise_label
+                    row["exercise"] = exercise_label
                     row["video_file"] = video_file
-                    row["frame_idx"]  = frame_idx
+                    row["frame_idx"] = frame_idx
                     all_rows.append(row)
 
                 cap.release()

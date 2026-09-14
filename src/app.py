@@ -105,8 +105,8 @@ with col2:
 # Initialize camera
 if st.session_state.running:
     cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
     
     prev_time = time.time()
     frame_timestamp_ms = 0
@@ -119,7 +119,7 @@ if st.session_state.running:
                 break
             
             frame = cv2.flip(frame, 1)
-            inference_frame = cv2.resize(frame, (640, 360))
+            inference_frame = cv2.resize(frame, (640, 480))
             rgb_frame = cv2.cvtColor(inference_frame, cv2.COLOR_BGR2RGB)
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
             

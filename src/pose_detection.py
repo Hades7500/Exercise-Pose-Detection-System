@@ -57,7 +57,7 @@ def draw_pose_landmarks(image, landmarks, connections=POSE_CONNECTIONS):
     
     return image
 
-def create_landmarker(model_path='../models/pose_landmarker_lite.task'):
+def create_landmarker(model_path='./models/pose_landmarker_lite.task'):
     options = PoseLandmarkerOptions(
         base_options=BaseOptions(model_asset_path=model_path),
         running_mode=VisionRunningMode.LIVE_STREAM,
@@ -82,8 +82,9 @@ def main():
 
     # Initialize webcam
     cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
     fps_time = 0
 
     with PoseLandmarker.create_from_options(options) as landmarker:
@@ -94,7 +95,7 @@ def main():
             if not ret:
                 break
                 
-            frame = cv2.flip(frame, 1)
+            frame = cv2.resize(frame, (640, 480))
             rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
             

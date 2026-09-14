@@ -120,7 +120,7 @@ def apply_form_labels(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def process_dataset(dataset_path: str,
-                    model_path:   str = "../models/pose_landmarker_lite.task",
+                    model_path:   str = "./models/pose_landmarker_lite.task",
                     output_csv:   str = "landmarks.csv"):
 
     all_rows, video_count, skipped = [], 0, 0
@@ -220,7 +220,7 @@ def process_dataset(dataset_path: str,
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset_path", type=str, required=True)
-    parser.add_argument("--model_path",   type=str, default="../models/pose_landmarker_lite.task")
+    parser.add_argument("--model_path",   type=str, default="./models/pose_landmarker_lite.task")
     parser.add_argument("--output_csv",   type=str, default="landmarks.csv")
     args = parser.parse_args()
     process_dataset(args.dataset_path, args.model_path, args.output_csv)

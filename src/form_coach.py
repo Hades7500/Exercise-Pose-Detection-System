@@ -11,6 +11,9 @@ import os
 import pickle
 import numpy as np
 from collections import deque
+from temporal_classifier import TemporalClassifier
+
+temporal_classifier = TemporalClassifier()
 
 LM = {
     "left_shoulder":    11,
@@ -260,6 +263,10 @@ class FormCoach:
 
         try:
             features = extract_features(landmarks)
+            prediction = temporal_classifier.add_frame(features)
+            if prediction is not None:
+                exercise, confidence = prediction
+                print(f"CNN: {exercise}({confidence:.1%})")
         except Exception:
             return self._last_result
 

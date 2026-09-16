@@ -2,3 +2,4 @@
 /dataset
 /models
 landmarks.csv
+.venv/
